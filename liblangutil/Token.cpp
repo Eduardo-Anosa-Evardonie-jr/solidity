@@ -130,15 +130,15 @@ namespace
 {
 int parseSize(string::const_iterator _begin, string::const_iterator _end)
 {
-	try
+	int ret = 0;
+	for (auto it = _begin; it != _end; it++)
 	{
-		int m = boost::lexical_cast<int>(boost::make_iterator_range(_begin, _end));
-		return m;
+		if (*it < '0' || *it > '9')
+			return -1;
+		ret *= 10;
+		ret += *it - '0';
 	}
-	catch(boost::bad_lexical_cast const&)
-	{
-		return -1;
-	}
+	return ret;
 }
 }
 
