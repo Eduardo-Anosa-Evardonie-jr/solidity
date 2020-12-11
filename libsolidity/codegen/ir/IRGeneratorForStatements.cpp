@@ -1738,7 +1738,30 @@ void IRGeneratorForStatements::endVisit(MemberAccess const& _memberAccess)
 		}
 		else if (member == "name")
 		{
-			solUnimplementedAssert(false, "");
+			TypePointer arg = dynamic_cast<MagicType const&>(*_memberAccess.expression().annotation().type).typeArgument();
+			ContractDefinition const& contract = dynamic_cast<ContractType const&>(*arg).contractDefinition();
+			string contractName = contract.name();
+			size_t words = (contractName.length() + 31) / 32;
+			vector<map<string, string>> wordParams(words);
+			for (size_t i = 0; i < words; ++i)
+			{
+				wordParams[i]["offset"] = to_string(i * 32);
+				wordParams[i]["wordValue"] = formatAsStringOrNumber(contractName.substr(32 * i, 32));
+			}
+
+			m_code << Whiskers(R"(
+				let <result> := <allocationFunction>(add(<size>, 32))
+				mstore(<result>, <size>)
+				let dataPos := add(<result>, 32)
+				<#word>
+					mstore(add(dataPos, <offset>), <wordValue>)
+				</word>
+			)")
+			("result", IRVariable(_memberAccess).commaSeparatedList())
+			("allocationFunction", m_utils.allocationFunction())
+			("size", to_string(contract.name().size()))
+			("word", wordParams)
+			.render();
 		}
 		else if (member == "interfaceId")
 		{
