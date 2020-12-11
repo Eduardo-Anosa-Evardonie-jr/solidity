@@ -126,22 +126,6 @@ int precedence(Token tok)
 }
 #undef T
 
-namespace
-{
-int parseSize(string::const_iterator _begin, string::const_iterator _end)
-{
-	int ret = 0;
-	for (auto it = _begin; it != _end; it++)
-	{
-		if (*it < '0' || *it > '9')
-			return -1;
-		ret *= 10;
-		ret += *it - '0';
-	}
-	return ret;
-}
-}
-
 static Token keywordByName(string const& _name)
 {
 	// The following macros are used inside TOKEN_LIST and cause non-keyword tokens to be ignored
@@ -162,6 +146,19 @@ bool isYulKeyword(string const& _literal)
 
 tuple<Token, unsigned int, unsigned int> fromIdentifierOrKeyword(string const& _literal)
 {
+	auto parseSize = [](string::const_iterator _begin, string::const_iterator _end) -> int
+	{
+		int ret = 0;
+		for (auto it = _begin; it != _end; it++)
+		{
+			if (*it < '0' || *it > '9')
+				return -1;
+			ret *= 10;
+			ret += *it - '0';
+		}
+		return ret;
+	};
+
 	auto positionM = find_if(_literal.begin(), _literal.end(), ::isdigit);
 	if (positionM != _literal.end())
 	{
