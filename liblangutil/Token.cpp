@@ -146,8 +146,18 @@ bool isYulKeyword(string const& _literal)
 
 tuple<Token, unsigned int, unsigned int> fromIdentifierOrKeyword(string const& _literal)
 {
+	// Used for `bytesM`, `uintM`, `intM`, `fixedMxN`, `ufixedMxN`.
+	// M/N must be shortest representation. M can never be 0. N can be zero.
 	auto parseSize = [](string::const_iterator _begin, string::const_iterator _end) -> int
 	{
+		// No number.
+		if (distance(_begin, _end) == 0)
+			return -1;
+
+		// Disallow leading zero.
+		if (distance(_begin, _end) > 1 && *_begin == '0')
+			return -1;
+
 		int ret = 0;
 		for (auto it = _begin; it != _end; it++)
 		{
